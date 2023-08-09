@@ -104,17 +104,10 @@ char *construct_full_path(const char *dir, const char *command) {
     }
 
     my_strcpy(full_path, dir);
-	for(int i = 0;full_path[i];i++)
-	{	printf("%c",full_path[i]); }printf("\n");
     full_path[dir_len] = '/';
-	for(int i = 0;full_path[i];i++)
-	{	printf("%c",full_path[i]); }printf("\n");
     my_strcpy(full_path + dir_len + 1, command);
-	for(int i = 0;full_path[i];i++)
-	{	printf("%c",full_path[i]); }printf("\n");
     full_path[path_len - 1] = '\0';
-for(int i = 0;full_path[i];i++)
-	{	printf("%c",full_path[i]); }printf("\n");
+
     return full_path;
 }
 
