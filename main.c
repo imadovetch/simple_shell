@@ -119,20 +119,23 @@ int main(int argc, char **argv) {
     int x = 0;
     char **commands = NULL;
     char *path = "/usr/bin"; // Use your default path here
-    printf("%s", prompt);
+    
 
     while (1) {
+		if(isatty(STDIN_FILENO) != 0)
+			printf("%s", prompt);
         x = getline(&buffer, &size, stdin);
+		
         if (x == -1) {
-            printf("\n");
+            //printf("\n");FREE
             return 0;
         }
 
         // Remove newline character
-        /*size_t len = my_strlen(buffer);
+        size_t len = my_strlen(buffer);
         if (len > 0 && buffer[len - 1] == '\n') {
             buffer[len - 1] = '\0';
-        }*/
+        }
 
         if (strcmp(buffer, "exit") == 0) {
             printf("you're out :/\n");
@@ -165,7 +168,7 @@ int main(int argc, char **argv) {
             perror("fork"); // Print an error if forking failed
         }
 
-        printf("%s", prompt);
+        
     }
 
     for (int i = 0; commands[i] != NULL; i++) {

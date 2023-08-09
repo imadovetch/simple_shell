@@ -1,0 +1,2 @@
+#!/bin/bash
+for i in $(ls chekers/$1/);do echo -n "$i:";./checker.bash ./a.out ./chekers/$1/$i;echo -e "\n--------------------------------------------------";done
