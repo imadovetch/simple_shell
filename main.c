@@ -255,7 +255,10 @@ char *construct_full_path(const char *dir, const char *command) {
 
     return full_path;
 }
-
+int status = 0;
+void cleanupFunction() {
+    exit(status);
+}
 
 int main(int argc, char **argv) {
     (void)argc, (void)argv;
@@ -265,7 +268,7 @@ int main(int argc, char **argv) {
     int x = 0;
     char **commands = NULL;
     char *path = "/usr/bin"; // Use your default path here
-    int status = 0;
+   // int status = 0;
 
     while (1) {
 		if(isatty(STDIN_FILENO) != 0)
@@ -285,7 +288,9 @@ int main(int argc, char **argv) {
         }
 
         commands = filter(buffer);
-        
+        //hada li lte7t 7al mo2a9at;
+        /*if (commands[0] == NULL)
+            exit(0);*/
         if (commands[0] != NULL) {
         if (strcmp(commands[0], "exit") == 0) {
         // zid lfree
@@ -309,6 +314,8 @@ int main(int argc, char **argv) {
         if(isatty(STDIN_FILENO) == 0)
         {  
             pid_t pid = fork(); // Create a child process
+            if(kill(pid, 0) != 0)
+                printf("dkhel\n");
       
 if (pid == 0) {
     // Child process
@@ -335,7 +342,7 @@ if (pid == 0) {
         status = 1; // Set an appropriate status for other errors
     }
     
-    exit(status); // Exit the child process with the updated status
+   
 }
 
 } else if (pid > 0) {
@@ -351,9 +358,9 @@ if (pid == 0) {
     perror("fork"); // Print an error if forking failed
     status = 1; // Set an appropriate non-zero status
 }
-   break; }
+   atexit(cleanupFunction);}
              
-        
+ if(isatty(STDIN_FILENO) != 0){      
        pid_t pid = fork(); // Create a child process
       
 if (pid == 0) {
@@ -381,8 +388,13 @@ if (pid == 0) {
         status = 1; // Set an appropriate status for other errors
     }
     
-    exit(status); // Exit the child process with the updated status
+    ; // Exit the child process with the updated status
 }
+if(isatty(STDIN_FILENO) == 0)
+{
+    printf("ana hmar\n");
+}
+
 
 } else if (pid > 0) {
     // Parent process
@@ -397,7 +409,7 @@ if (pid == 0) {
     perror("fork"); // Print an error if forking failed
     status = 1; // Set an appropriate non-zero status
 }
-    }
+    }}
 
     for (int i = 0; commands[i] != NULL; i++) {
         free(commands[i]);
@@ -407,3 +419,4 @@ if (pid == 0) {
     exit(status);
     return 0;
 }//asel
+// commantit comand == null
