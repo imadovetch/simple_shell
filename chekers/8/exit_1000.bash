@@ -2,7 +2,7 @@
 
 ################################################################################
 # Description for the intranet check (one line, support Markdown syntax)
-# Remove the `$PATH` environment variable and execute `/bin/ls`
+# Exit with the status `1000`
 
 ################################################################################
 # The variable 'compare_with_sh' IS OPTIONNAL
@@ -21,7 +21,7 @@
 # as follows: "echo $shell_input | ./hsh"
 #
 # It can be empty and multiline
-shell_input="/bin/ls"
+shell_input="exit 1000"
 
 ################################################################################
 # The variable 'shell_params' IS OPTIONNAL
@@ -41,9 +41,6 @@ shell_input="/bin/ls"
 # Return value: Discarded
 function check_setup()
 {
-	OLDPATH="$PATH"
-	unset PATH
-
 	return 0
 }
 
@@ -60,12 +57,30 @@ function sh_setup()
 	return 0
 }
 
-
+################################################################################
+# The function `check_callback` will be called AFTER the execution of the shell
+# It allows you to clear VARIABLES, cleanup files, ...
+#
+# It is also possible to perform additionnal checks.
+# Here is a list of available variables:
+# STATUS -> Path to the file containing the exit status of the shell
+# OUTPUTFILE -> Path to the file containing the stdout of the shell
+# ERROR_OUTPUTFILE -> Path to the file containing the stderr of the shell
+# EXPECTED_STATUS -> Path to the file containing the exit status of sh
+# EXPECTED_OUTPUTFILE -> Path to the file containing the stdout of sh
+# EXPECTED_ERROR_OUTPUTFILE -> Path to the file continaing the stderr of sh
+#
+# Parameters:
+#     $1 -> Status of the comparison with sh
+#             0 -> The output is the same as sh
+#             1 -> The output differs from sh
+#
+# Return value:
+#     0  -> Check succeed
+#     1  -> Check fails
 function check_callback()
 {
 	status=$1
-
-	export PATH="$OLDPATH"
 
 	return $status
 }

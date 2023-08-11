@@ -259,9 +259,45 @@ int status = 0;
 void cleanupFunction() {
     exit(status);
 }
+ssize_t _getline(char **lineptr, size_t *n, FILE *stream) {
+    if (*lineptr == NULL || *n == 0) {
+        *n = 128;  // Initial buffer size
+        *lineptr = (char *)malloc(*n);
+        if (*lineptr == NULL) {
+            return -1;  // Error allocating memory
+        }
+    }
 
+    size_t pos = 0;
+    int c;
+
+    while ((c = fgetc(stream)) != EOF) {
+        (*lineptr)[pos++] = (char)c;
+
+        if (pos >= *n - 1) {
+            *n *= 2;  // Double the buffer size
+            char *new_ptr = (char *)realloc(*lineptr, *n);
+            if (new_ptr == NULL) {
+                return -1;  // Error reallocating memory
+            }
+            *lineptr = new_ptr;
+        }
+
+        if (c == '\n') {
+            break;  // Reached end of line
+        }
+    }
+
+    (*lineptr)[pos] = '\0';  // Null-terminate the string
+
+    if (pos == 0 && c == EOF) {
+        return -1;  // No characters read, reached end of file
+    }
+
+    return pos;  // Return the number of characters read
+}
 int main(int argc, char **argv) {
-    (void)argc, (void)argv;
+   
     char *prompt = "mine$ ";
     char *buffer = NULL;
     size_t size = 0;
@@ -274,7 +310,7 @@ int main(int argc, char **argv) {
 		if(isatty(STDIN_FILENO) != 0)
 			printf("%s", prompt);
             
-        x = getline(&buffer, &size, stdin);
+        x = _getline(&buffer, &size, stdin);
 		
         if (x == -1) {
             //printf("\n");FREE
@@ -303,11 +339,19 @@ int main(int argc, char **argv) {
         //hada li lte7t 7al mo2a9at;
         /*if (commands[0] == NULL)
             exit(0);*/
+        
         if (commands[0] != NULL) {
         if (strcmp(commands[0], "exit") == 0) {
         // zid lfree
         if (commands[1] != NULL)
-            status = atoi(commands[1]);
+        {  status = atoi(commands[1]);
+        if(status <= 0 || status <= 255 )
+        {
+            fprintf(stderr, "[%s: 1: exit: Illegal number: %d\n", argv[0], status);
+            exit(2);
+        }    
+        exit(status);}
+            
         else
             status = 0;
         // printf("%d\n",status);
@@ -326,8 +370,8 @@ int main(int argc, char **argv) {
         if(isatty(STDIN_FILENO) == 0)
         {  
             pid_t pid = fork(); // Create a child process
-            if(kill(pid, 0) != 0)
-                printf("dkhel\n");
+            /*if(kill(pid, 0) != 0)
+                printf("dkhel\n");*/
       
 if (pid == 0) {
     // Child process
@@ -343,6 +387,7 @@ if (pid == 0) {
     }
     
    if (execve(full_path, commands, environ) == -1) {
+    
     if (errno == ENOENT) {
         fprintf(stderr, "sh: %s: not found\n", command);
         status = 127;
