@@ -265,11 +265,12 @@ int main(int argc, char **argv) {
     int x = 0;
     char **commands = NULL;
     char *path = "/usr/bin"; // Use your default path here
-    int status;
+    int status = 0;
 
     while (1) {
 		if(isatty(STDIN_FILENO) != 0)
 			printf("%s", prompt);
+            
         x = getline(&buffer, &size, stdin);
 		
         if (x == -1) {
@@ -284,6 +285,7 @@ int main(int argc, char **argv) {
         }
 
         commands = filter(buffer);
+        
         if (commands[0] != NULL) {
         if (strcmp(commands[0], "exit") == 0) {
         // zid lfree
@@ -292,18 +294,22 @@ int main(int argc, char **argv) {
         else
             status = 0;
         // printf("%d\n",status);
-        exit(status);
+        break;
+        //exit(status);
     }
+        
         if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$?") == 0) {
         printf("%d\n", status);
+        status = 0;
         continue;; // Display the exit status of the last command
         }
 }
         
 
-        
-        
-       pid_t pid = fork(); // Create a child process
+        if(isatty(STDIN_FILENO) == 0)
+        {  
+            pid_t pid = fork(); // Create a child process
+      
 if (pid == 0) {
     // Child process
     char *command = commands[0];
@@ -316,20 +322,68 @@ if (pid == 0) {
     if (full_path == NULL) {
         full_path = command;
     }
-
-    if (execve(full_path, commands, environ) == -1) {
-        // Handle execve error
-        if (errno == ENOENT) {
-            fprintf(stderr, "sh: %s: command not found\n", command);
-            exit(127);
-        } else if (errno == EACCES) {
-            fprintf(stderr, "sh: %s: permission denied\n", command);
-            exit(2);
-        } else {
-            perror("execve");
-            exit(1);
-        }
+    
+   if (execve(full_path, commands, environ) == -1) {
+    if (errno == ENOENT) {
+        fprintf(stderr, "sh: %s: command not found\n", command);
+        status = 127;
+    } else if (errno == EACCES) {
+        fprintf(stderr, "sh: %s: permission denied\n", command);
+        status = 2;
+    } else {
+        perror("execve");
+        status = 1; // Set an appropriate status for other errors
     }
+    
+    exit(status); // Exit the child process with the updated status
+}
+
+} else if (pid > 0) {
+    // Parent process
+    wait(&status); // Wait for the child process to finish
+    if (WIFEXITED(status)) {
+        status = WEXITSTATUS(status); // Get the exit status of the child process
+    } else {
+        // Child process did not terminate normally
+        status = 1; // Set an appropriate non-zero status
+    }
+} else {
+    perror("fork"); // Print an error if forking failed
+    status = 1; // Set an appropriate non-zero status
+}
+   break; }
+             
+        
+       pid_t pid = fork(); // Create a child process
+      
+if (pid == 0) {
+    // Child process
+    char *command = commands[0];
+    char *full_path = NULL;
+
+    if (strchr(command, '/') == NULL) {
+        full_path = construct_full_path(path, command);
+    }
+
+    if (full_path == NULL) {
+        full_path = command;
+    }
+    
+   if (execve(full_path, commands, environ) == -1) {
+    if (errno == ENOENT) {
+        fprintf(stderr, "sh: %s: command not found\n", command);
+        status = 127;
+    } else if (errno == EACCES) {
+        fprintf(stderr, "sh: %s: permission denied\n", command);
+        status = 2;
+    } else {
+        perror("execve");
+        status = 1; // Set an appropriate status for other errors
+    }
+    
+    exit(status); // Exit the child process with the updated status
+}
+
 } else if (pid > 0) {
     // Parent process
     wait(&status); // Wait for the child process to finish
@@ -349,6 +403,7 @@ if (pid == 0) {
         free(commands[i]);
     }
     free(commands);
-    free(buffer);
+    //free(buffer);
+    exit(status);
     return 0;
-}
+}//asel
