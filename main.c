@@ -100,7 +100,7 @@ char *construct_full_path(const char *dir, const char *command) {
     char *full_path = malloc(path_len);
     if (full_path == NULL) {
         perror("malloc");
-        exit(1);
+        exit(0);
     }
 
     my_strcpy(full_path, dir);
@@ -230,7 +230,7 @@ char *construct_full_path(const char *dir, const char *command) {
     char *full_path = malloc(path_len);
     if (full_path == NULL) {
         perror("malloc");
-        exit(1);
+        exit(0);
     }
 
     // If the command is an absolute path or contains any slashes, use it directly
@@ -248,7 +248,7 @@ char *construct_full_path(const char *dir, const char *command) {
     // Check if the file exists
     if (access(full_path, F_OK) == -1) {
         // File does not exist
-        fprintf(stderr, "sh: %s: command not found\n", command);
+        fprintf(stderr, "sh: %s: not found\n", command);
         free(full_path);
         exit(127);
     }
@@ -286,7 +286,19 @@ int main(int argc, char **argv) {
         if (len > 0 && buffer[len - 1] == '\n') {
             buffer[len - 1] = '\0';
         }
-
+        for (int i = 0; buffer[i]; i++) {
+    if (!isspace(buffer[i])) {
+        // Found a non-space character
+        break;
+    }
+    
+    // If we've reached the end of the buffer and all characters are spaces
+    if (buffer[i + 1] == '\0') {
+        
+        exit(0);
+    }
+}
+       
         commands = filter(buffer);
         //hada li lte7t 7al mo2a9at;
         /*if (commands[0] == NULL)
@@ -332,7 +344,7 @@ if (pid == 0) {
     
    if (execve(full_path, commands, environ) == -1) {
     if (errno == ENOENT) {
-        fprintf(stderr, "sh: %s: command not found\n", command);
+        fprintf(stderr, "sh: %s: not found\n", command);
         status = 127;
     } else if (errno == EACCES) {
         fprintf(stderr, "sh: %s: permission denied\n", command);
@@ -378,7 +390,7 @@ if (pid == 0) {
     
    if (execve(full_path, commands, environ) == -1) {
     if (errno == ENOENT) {
-        fprintf(stderr, "sh: %s: command not found\n", command);
+        fprintf(stderr, "sh: %s: not found\n", command);
         status = 127;
     } else if (errno == EACCES) {
         fprintf(stderr, "sh: %s: permission denied\n", command);
