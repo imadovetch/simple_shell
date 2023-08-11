@@ -290,7 +290,7 @@ int main(int argc, char **argv) {
     if (!isspace(buffer[i])) {
         // Found a non-space character
         break;
-    }
+    }//dakhel
     
     // If we've reached the end of the buffer and all characters are spaces
     if (buffer[i + 1] == '\0') {
@@ -399,7 +399,7 @@ if (pid == 0) {
         perror("execve");
         status = 1; // Set an appropriate status for other errors
     }
-    k
+    
     ; // Exit the child process with the updated status
 }
 if(isatty(STDIN_FILENO) == 0)
