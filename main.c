@@ -399,7 +399,7 @@ if (pid == 0) {
         perror("execve");
         status = 1; // Set an appropriate status for other errors
     }
-    
+    k
     ; // Exit the child process with the updated status
 }
 if(isatty(STDIN_FILENO) == 0)
