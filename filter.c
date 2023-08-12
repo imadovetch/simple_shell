@@ -44,7 +44,7 @@ cont:
 	
 }
 
-char **filter(char *str) {// ls                   \n       -a   
+char **filter(const char *program_name,char *str ) {// ls                   \n       -a   
     char *com, **comands = NULL;
     int i = 0;
 
@@ -64,6 +64,37 @@ char **filter(char *str) {// ls                   \n       -a
         perror("realloc failed");
         exit(98);
     }
+	for(i = 0 ; comands[i]; i++)
+	{
+		if (comands[i] && comands[i+1]) {
+    if (strcmp(comands[i], "exit") == 0) {
+        char *endptr;
+        int x = strtol(comands[i+1], &endptr, 10);
+        //dir strtol dyalek
+        if (*endptr != '\0') {
+            // Conversion failed, it's not a valid number
+            fprintf(stderr, "%s: 1: exit: Illegal number: %s\n", program_name, comands[i+1]);
+            exit(2);
+        } else if (x <= 0) {
+            // Number is out of valid exit status range
+            fprintf(stderr, "%s: 1: exit: Illegal number: %d\n", program_name, x);
+            exit(2);
+        }else if(x >= 255)
+        {
+            
+            exit(232);
+        }
+        
+        exit((int)x);
+    }}
+		
+		
+		else if (strcmp(comands[i],"exit") == 0)
+		{
+			exit(0);
+		}
+		
+	}
     comands[i] = NULL;
     
     return (comands);//ls -a

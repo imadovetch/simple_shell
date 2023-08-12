@@ -222,7 +222,7 @@ void my_strcpy(char *dest, const char *src) {
 
 
 
-char *construct_full_path(const char *dir, const char *command) {
+char *construct_full_path(const char *program_name, int line_number, const char *dir, const char *command) {
     size_t dir_len = my_strlen(dir);
     size_t command_len = my_strlen(command);
     size_t path_len = dir_len + 1 + command_len + 1;
@@ -248,13 +248,14 @@ char *construct_full_path(const char *dir, const char *command) {
     // Check if the file exists
     if (access(full_path, F_OK) == -1) {
         // File does not exist
-        fprintf(stderr, "sh: %s: not found\n", command);
+        fprintf(stderr, "%s: %d: %s: not found\n", program_name, line_number, command);
         free(full_path);
         exit(127);
     }
 
     return full_path;
 }
+
 int status = 0;
 void cleanupFunction() {
     exit(status);
@@ -297,13 +298,16 @@ ssize_t _getline(char **lineptr, size_t *n, FILE *stream) {
     return pos;  // Return the number of characters read
 }
 int main(int argc, char **argv) {
-   
+   int line_number = 0;
     char *prompt = "mine$ ";
     char *buffer = NULL;
     size_t size = 0;
     int x = 0;
     char **commands = NULL;
     char *path = "/usr/bin"; // Use your default path here
+    char *home_dir = getenv("HOME");
+    char *previous_dir = NULL;
+    char *current_dir = NULL;
    // int status = 0;
 
     while (1) {
@@ -311,7 +315,7 @@ int main(int argc, char **argv) {
 			printf("%s", prompt);
             
         x = _getline(&buffer, &size, stdin);
-		
+		line_number++;
         if (x == -1) {
             //printf("\n");FREE
             return 0;
@@ -335,37 +339,50 @@ int main(int argc, char **argv) {
     }
 }
        
-        commands = filter(buffer);
+        commands = filter(argv[0],buffer);
         //hada li lte7t 7al mo2a9at;
         /*if (commands[0] == NULL)
             exit(0);*/
         
         if (commands[0] != NULL) {
-        if (strcmp(commands[0], "exit") == 0) {
-        // zid lfree
-        if (commands[1] != NULL)
-        {  status = atoi(commands[1]);
-        if(status <= 0 || status <= 255 )
-        {
-            fprintf(stderr, "[%s: 1: exit: Illegal number: %d\n", argv[0], status);
-            exit(2);
-        }    
-        exit(status);}
-            
-        else
-            status = 0;
-        // printf("%d\n",status);
-        break;
-        //exit(status);
-    }
-        
-        if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$?") == 0) {
+       
+         if (strcmp(commands[0], "cd") == 0) {
+                // Handle CD command
+                if (commands[1] == NULL || strcmp(commands[1], "~") == 0) {
+                    if (chdir(home_dir) == -1) {
+                        perror("cd");
+                    }
+                } else if (strcmp(commands[1], "-") == 0) {
+                    if (previous_dir != NULL) {
+                        if (chdir(previous_dir) == -1) {
+                            perror("cd");
+                        }
+                    } else {
+                        fprintf(stderr, "cd: no previous directory available\n");
+                    }
+                } else {
+                    if (chdir(commands[1]) == -1) {
+                        perror("cd");
+                    }
+                }
+                // Update PWD environment variable
+                current_dir = getcwd(NULL, 0);
+                if (current_dir != NULL) {
+                    setenv("PWD", current_dir, 1);
+                }
+                if (previous_dir != NULL) {
+                    free(previous_dir);
+                }
+                previous_dir = current_dir;
+                continue;
+            }
+        else if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$?") == 0) {
         printf("%d\n", status);
         status = 0;
         continue;; // Display the exit status of the last command
         }
 }
-        
+          
 
         if(isatty(STDIN_FILENO) == 0)
         {  
@@ -379,7 +396,9 @@ if (pid == 0) {
     char *full_path = NULL;
 
     if (strchr(command, '/') == NULL) {
-        full_path = construct_full_path(path, command);
+        full_path = construct_full_path(argv[0], line_number, path, command);
+
+
     }
 
     if (full_path == NULL) {
@@ -389,7 +408,7 @@ if (pid == 0) {
    if (execve(full_path, commands, environ) == -1) {
     
     if (errno == ENOENT) {
-        fprintf(stderr, "sh: %s: not found\n", command);
+        fprintf(stderr, "%s: %d: %s: not found\n", argv[0], line_number, command);
         status = 127;
     } else if (errno == EACCES) {
         fprintf(stderr, "sh: %s: permission denied\n", command);
@@ -426,7 +445,9 @@ if (pid == 0) {
     char *full_path = NULL;
 
     if (strchr(command, '/') == NULL) {
-        full_path = construct_full_path(path, command);
+        full_path = construct_full_path(argv[0], __LINE__, path, command);
+
+
     }
 
     if (full_path == NULL) {
@@ -435,7 +456,7 @@ if (pid == 0) {
     
    if (execve(full_path, commands, environ) == -1) {
     if (errno == ENOENT) {
-        fprintf(stderr, "sh: %s: not found\n", command);
+        fprintf(stderr, "%s: %d: %s: not found\n", argv[0], line_number, command);
         status = 127;
     } else if (errno == EACCES) {
         fprintf(stderr, "sh: %s: permission denied\n", command);

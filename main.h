@@ -14,6 +14,6 @@
 
 /* protos */
 char *_strtok(s, delim);
-char **filter(char *str);
+char **filter(const char *program_name,char *str );
 int _snprintf(char *str, size_t size, const char *format, ...);
 #endif
