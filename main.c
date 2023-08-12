@@ -347,40 +347,62 @@ int main(int argc, char **argv) {
         if (commands[0] != NULL) {
        
          if (strcmp(commands[0], "cd") == 0) {
-                // Handle CD command
-                if (commands[1] == NULL || strcmp(commands[1], "~") == 0) {
-                    if (chdir(home_dir) == -1) {
-                        perror("cd");
-                    }
-                } else if (strcmp(commands[1], "-") == 0) {
-                    if (previous_dir != NULL) {
-                        if (chdir(previous_dir) == -1) {
-                            perror("cd");
-                        }
-                    } else {
-                        fprintf(stderr, "cd: no previous directory available\n");
-                    }
-                } else {
-                    if (chdir(commands[1]) == -1) {
-                        perror("cd");
-                    }
-                }
-                // Update PWD environment variable
-                current_dir = getcwd(NULL, 0);
-                if (current_dir != NULL) {
-                    setenv("PWD", current_dir, 1);
-                }
-                if (previous_dir != NULL) {
-                    free(previous_dir);
-                }
-                previous_dir = current_dir;
-                continue;
+    // Handle CD command
+    if (commands[1] == NULL || strcmp(commands[1], "~") == 0) {
+        if (chdir(home_dir) == -1) {
+            perror("cd");
+        }
+    } else if (strcmp(commands[1], "-") == 0) {
+        if (previous_dir != NULL) {
+            if (chdir(previous_dir) == -1) {
+                perror("cd");
             }
+        }
+    } else {
+        if (chdir(commands[1]) == -1) {
+            fprintf(stderr, "%s: %d: cd: can't cd to %s\n", argv[0], line_number, commands[1]);
+        }
+    }
+
+    // Update PWD environment variable
+    current_dir = getcwd(NULL, 0);
+    if (current_dir != NULL) {
+        setenv("PWD", current_dir, 1);
+    }
+
+    if (previous_dir != NULL) {
+        free(previous_dir);
+    }
+    previous_dir = current_dir;
+
+    continue;
+}
         else if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$?") == 0) {
         printf("%d\n", status);
         status = 0;
         continue;; // Display the exit status of the last command
+        
         }
+        
+            if (strcmp(commands[0], "setenv") == 0) {
+                if (commands[1] != NULL && commands[2] != NULL) {
+                    if (setenv(commands[1], commands[2], 1) != 0) {
+                        fprintf(stderr, "setenv: Failed to set environment variable\n");
+                    }
+                } else {
+                    fprintf(stderr, "setenv: Invalid syntax\n");
+                }
+                continue;
+            } else if (strcmp(commands[0], "unsetenv") == 0) {
+                if (commands[1] != NULL) {
+                    if (unsetenv(commands[1]) != 0) {
+                        fprintf(stderr, "unsetenv: Failed to unset environment variable\n");
+                    }
+                } else {
+                    fprintf(stderr, "unsetenv: Invalid syntax\n");
+                }
+                continue;
+            }
 }
           
 

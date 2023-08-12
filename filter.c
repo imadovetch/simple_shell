@@ -64,6 +64,7 @@ char **filter(const char *program_name,char *str ) {// ls                   \n  
         perror("realloc failed");
         exit(98);
     }
+	comands[i] = NULL;
 	for(i = 0 ; comands[i]; i++)
 	{
 		if (comands[i] && comands[i+1]) {
