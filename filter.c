@@ -67,6 +67,7 @@ char **filter(const char *program_name,char *str ) {// ls                   \n  
 	comands[i] = NULL;
 	for(i = 0 ; comands[i]; i++)
 	{
+		
 		if (comands[i] && comands[i+1]) {
     if (strcmp(comands[i], "exit") == 0) {
         char *endptr;
