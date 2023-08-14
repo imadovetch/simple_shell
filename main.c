@@ -112,7 +112,66 @@ void remove_comments(char **commands) {
         }
     }
 }
+void execute_command(char *program_name, char *command, int *status) {
+    pid_t pid = fork();
+    if (pid == 0) {
+        // Child process
+        char *args[] = {command, NULL};
+        execvp(command, args);
 
+        // If execvp returns, the command was not found
+        fprintf(stderr, "%s: %d: %s: not found\n", program_name, 1, command);
+        exit(127); // Exit with an appropriate status
+    } else if (pid > 0) {
+        waitpid(pid, status, 0); // Wait for the child process and store the exit status
+    } else {
+        perror("fork");
+    }
+}
+
+void execute_command_group(char **command_group, char *name, int *status) {
+    pid_t pid = fork();
+    if (pid == 0) {
+        // Child process
+        for (int i = 0; command_group[i] != NULL; i++) {
+            execute_command(name, command_group[i], status);
+        }
+        exit(0); // Exit the child process
+    } else if (pid > 0) {
+        waitpid(pid, status, 0); // Wait for the child process and store the exit status
+    } else {
+        perror("fork");
+    }
+}
+
+void check_opperators(char **pcommands, char *name, int *status) {
+    int i = 0;
+    while (pcommands[i]) {
+        char **command_group = NULL;
+        int j = 0;
+
+        // Collect commands until a semicolon is encountered
+        while (pcommands[i] && strcmp(pcommands[i], ";") != 0) {
+            command_group = realloc(command_group, (j + 2) * sizeof(char *));
+            command_group[j] = strdup(pcommands[i]);
+            command_group[j + 1] = NULL;
+            i++;
+            j++;
+        }
+        
+        if (j > 0) {
+            execute_command_group(command_group, name, status); // Execute the group of commands
+        }
+
+        // Free memory for the command group
+        for (int k = 0; k < j; k++) {
+            free(command_group[k]);
+        }
+        free(command_group);
+
+        i++; // Skip the semicolon if present
+    }
+}
 int main(int argc, char **argv) {
    int line_number = 0;
     char *prompt = "mine$ ";
@@ -287,6 +346,7 @@ if (pid == 0) {
            return status;}
 
         x = _getline(&buffer, &size, stdin);
+         
 		line_number++;
         
         if (x == -1) {
@@ -311,8 +371,20 @@ if (pid == 0) {
         exit(0);
     }
 }
-       
+       int y = 0;
         commands = filter(argv[0],buffer);
+        for(int h = 0;commands[h];h++)
+        {
+            if (strcmp(commands[h],";") == 0)
+            {
+                check_opperators(commands, argv[0], &status);
+                y=1;
+            }
+                    
+        }
+        if (y == 1)
+            continue;
+        
        if (commands[0] != NULL && strcmp(commands[0], "#") == 0 && isatty(STDIN_FILENO) == 0) {
     exit(0);
 }
