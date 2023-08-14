@@ -1,8 +1,20 @@
 #include "main.h"
 
 extern char **environ;
-size_t my_strlen(const char *str);
-void my_strcpy(char *dest, const char *src);
+size_t my_strlen(const char *str) {
+    size_t len = 0;
+    while (str[len] != '\0') {
+        len++;
+    }
+    return len;
+}
+
+void my_strcpy(char *dest, const char *src) {
+    while ((*dest = *src) != '\0') {
+        dest++;
+        src++;
+    }
+}
 
 char *construct_full_path(const char *program_name, int line_number, const char *dir, const char *command)
 {
