@@ -19,6 +19,7 @@ int _snprintf(char *str, size_t size, const char *format, ...);
 //string functions protos
 size_t my_strlen(const char *str);
 void my_strcpy(char *dest, const char *src);
+int _strcmp(char *s1, char *s2);
 /* allocate and free memory functions protos*/
 int _free(void **p);
 void string_free(char **ptr);
