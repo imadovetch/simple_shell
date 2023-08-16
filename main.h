@@ -16,4 +16,11 @@
 char *_strtok(s, delim);
 char **filter(const char *program_name,char *str );
 int _snprintf(char *str, size_t size, const char *format, ...);
+//string functions protos
+size_t my_strlen(const char *str);
+void my_strcpy(char *dest, const char *src);
+/* allocate and free memory functions protos*/
+int _free(void **p);
+void string_free(char **ptr);
+void *my_realloc(void *ptr, size_t new_size);
 #endif
