@@ -212,6 +212,70 @@ void check_opperators(char **pcommands, char *name, int *status) {
         }
     }
 }
+void handle_cd(char **commands, char *home_dir, char **previous_dir) {
+    if (commands[1] == NULL || strcmp(commands[1], "~") == 0) {
+        if (chdir(home_dir) == -1) {
+            perror("cd");
+        }
+    } else if (strcmp(commands[1], "-") == 0) {
+        if (*previous_dir != NULL) {
+            if (chdir(*previous_dir) == -1) {
+                perror("cd");
+            }
+        }
+    } else {
+        if (chdir(commands[1]) == -1) {
+            fprintf(stderr, "cd: can't cd to %s\n", commands[1]);
+        }
+    }
+
+    char *current_dir = getcwd(NULL, 0);
+    if (current_dir != NULL) {
+        setenv("PWD", current_dir, 1);
+    }
+
+    if (*previous_dir != NULL) {
+        free(*previous_dir);
+    }
+    *previous_dir = current_dir;
+}
+
+void handle_echo(char **commands, int *status) {
+    if (strcmp(commands[1], "$?") == 0) {
+        printf("%d\n", *status);
+    } else if (strcmp(commands[1], "$$") == 0) {
+        printf("%d\n", getpid());
+    } else if (strcmp(commands[1], "$PATH") == 0) {
+        char *path_value = getenv("PATH");
+        if (path_value != NULL) {
+            printf("%s\n", path_value);
+        } else {
+            fprintf(stderr, "PATH environment variable not set\n");
+        }
+    }
+    *status = 0;
+}
+
+void handle_environment(char **commands, int *status) {
+    if (strcmp(commands[0], "setenv") == 0) {
+        if (commands[1] != NULL && commands[2] != NULL) {
+            if (setenv(commands[1], commands[2], 1) != 0) {
+                fprintf(stderr, "setenv: Failed to set environment variable\n");
+            }
+        } else {
+            fprintf(stderr, "setenv: Invalid syntax\n");
+        }
+    } else if (strcmp(commands[0], "unsetenv") == 0) {
+        if (commands[1] != NULL) {
+            if (unsetenv(commands[1]) != 0) {
+                fprintf(stderr, "unsetenv: Failed to unset environment variable\n");
+            }
+        } else {
+            fprintf(stderr, "unsetenv: Invalid syntax\n");
+        }
+    }
+    *status = 0;
+}
 int main(int argc, char **argv) {
    int line_number = 0;
     char *prompt = "mine$ ";
@@ -247,73 +311,18 @@ if (file == NULL) {
                }
                char **commands = filter(argv[0], line);
 
-               if (strcmp(commands[0], "cd") == 0) {
-    if (commands[1] == NULL || strcmp(commands[1], "~") == 0) {
-        if (chdir(home_dir) == -1) {
-            perror("cd");
-        }
-    } else if (strcmp(commands[1], "-") == 0) {
-        if (previous_dir != NULL) {
-            if (chdir(previous_dir) == -1) {
-                perror("cd");
-            }
-        }
-    } else {
-        if (chdir(commands[1]) == -1) {
-            fprintf(stderr, "%s: %d: cd: can't cd to %s\n", argv[0], line_number, commands[1]);
-        }
-    }
-
-    current_dir = getcwd(NULL, 0);
-    if (current_dir != NULL) {
-        setenv("PWD", current_dir, 1);
-    }
-
-    if (previous_dir != NULL) {
-        free(previous_dir);
-    }
-    previous_dir = current_dir;
-
-    continue;
-}
-        else if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$?") == 0) {
-        printf("%d\n", status);
-        status = 0;
-        continue;
-        
-        }else if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$$") == 0) {
-    printf("%d\n", getpid());
-    status = 0;
-    continue;
-}           else if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$PATH") == 0) {
-    char *path_value = getenv("PATH");
-    if (path_value != NULL) {
-        printf("%s\n", path_value);
-    } else {
-        fprintf(stderr, "PATH environment variable not set\n");
-    }
-    status = 0;
-    continue;
-}
-            if (strcmp(commands[0], "setenv") == 0) {
-                if (commands[1] != NULL && commands[2] != NULL) {
-                    if (setenv(commands[1], commands[2], 1) != 0) {
-                        fprintf(stderr, "setenv: Failed to set environment variable\n");
-                    }
-                } else {
-                    fprintf(stderr, "setenv: Invalid syntax\n");
-                }
+               if (commands[0] != NULL) {
+            if (strcmp(commands[0], "cd") == 0) {
+                handle_cd(commands, home_dir, &previous_dir);
                 continue;
-            } else if (strcmp(commands[0], "unsetenv") == 0) {
-                if (commands[1] != NULL) {
-                    if (unsetenv(commands[1]) != 0) {
-                        fprintf(stderr, "unsetenv: Failed to unset environment variable\n");
-                    }
-                } else {
-                    fprintf(stderr, "unsetenv: Invalid syntax\n");
-                }
+            } else if (strcmp(commands[0], "echo") == 0) {
+                handle_echo(commands, &status);
+                continue;
+            } else if (strcmp(commands[0], "setenv") == 0 || strcmp(commands[0], "unsetenv") == 0) {
+                handle_environment(commands, &status);
                 continue;
             }
+        }
 
            }
 
