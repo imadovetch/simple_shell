@@ -2,20 +2,7 @@
 
 extern char **environ;
 
-size_t my_strlen(const char *str) {
-    size_t len = 0;
-    while (str[len] != '\0') {
-        len++;
-    }
-    return len;
-}
 
-void my_strcpy(char *dest, const char *src) {
-    while ((*dest = *src) != '\0') {
-        dest++;
-        src++;
-    }
-}
 
 void adjust_ls_command(char **command) {
     if (*command != NULL && strstr(*command, "ls") != NULL) {
@@ -136,7 +123,7 @@ int c_execvp(const char *file, char *const argv[]) {
         return -1;
     }
 
-    char *path_copy = strdup(path);
+    char *path_copy = _strdup(path);
     if (path_copy == NULL) {
         perror("Error duplicating PATH");
         return -1;
@@ -183,9 +170,9 @@ void check_semicollen(char **pcommands, char *name, int *status) {
         int j = 0;
 
         // Collect commands until a semicolon is encountered
-        while (pcommands[i] && strcmp(pcommands[i], ";") != 0) {
+        while (pcommands[i] && _strcmp(pcommands[i], ";") != 0) {
             command_group = realloc(command_group, (j + 2) * sizeof(char *));
-            command_group[j] = strdup(pcommands[i]);
+            command_group[j] = _strdup(pcommands[i]);
             command_group[j + 1] = NULL;
             i++;
             j++;
@@ -212,14 +199,14 @@ void check_opperators(char **pcommands, char *name, int *status) {
         int or_operator = 0;  // To track the OR operator
 
         // Find the next AND or OR operator
-        while (pcommands[j] && strcmp(pcommands[j], "&&") != 0 && strcmp(pcommands[j], "||") != 0) {
+        while (pcommands[j] && _strcmp(pcommands[j], "&&") != 0 && _strcmp(pcommands[j], "||") != 0) {
             j++;
         }
 
         if (pcommands[j]) {
-            if (strcmp(pcommands[j], "&&") == 0) {
+            if (_strcmp(pcommands[j], "&&") == 0) {
                 and_operator = 1;
-            } else if (strcmp(pcommands[j], "||") == 0) {
+            } else if (_strcmp(pcommands[j], "||") == 0) {
                 or_operator = 1;
             }
 
@@ -245,11 +232,11 @@ void check_opperators(char **pcommands, char *name, int *status) {
     }
 }
 void handle_cd(char **commands, char *home_dir, char **previous_dir) {
-    if (commands[1] == NULL || strcmp(commands[1], "~") == 0) {
+    if (commands[1] == NULL || _strcmp(commands[1], "~") == 0) {
         if (chdir(home_dir) == -1) {
             perror("cd");
         }
-    } else if (strcmp(commands[1], "-") == 0) {
+    } else if (_strcmp(commands[1], "-") == 0) {
         if (*previous_dir != NULL) {
             if (chdir(*previous_dir) == -1) {
                 perror("cd");
@@ -273,11 +260,11 @@ void handle_cd(char **commands, char *home_dir, char **previous_dir) {
 }
 
 void handle_echo(char **commands, int *status) {
-    if (strcmp(commands[1], "$?") == 0) {
+    if (_strcmp(commands[1], "$?") == 0) {
         printf("%d\n", *status);
-    } else if (strcmp(commands[1], "$$") == 0) {
+    } else if (_strcmp(commands[1], "$$") == 0) {
         printf("%d\n", getpid());
-    } else if (strcmp(commands[1], "$PATH") == 0) {
+    } else if (_strcmp(commands[1], "$PATH") == 0) {
         char *path_value = getenv("PATH");
         if (path_value != NULL) {
             printf("%s\n", path_value);
@@ -289,7 +276,7 @@ void handle_echo(char **commands, int *status) {
 }
 
 void handle_environment(char **commands, int *status) {
-    if (strcmp(commands[0], "setenv") == 0) {
+    if (_strcmp(commands[0], "setenv") == 0) {
         if (commands[1] != NULL && commands[2] != NULL) {
             if (setenv(commands[1], commands[2], 1) != 0) {
                 fprintf(stderr, "setenv: Failed to set environment variable\n");
@@ -297,7 +284,7 @@ void handle_environment(char **commands, int *status) {
         } else {
             fprintf(stderr, "setenv: Invalid syntax\n");
         }
-    } else if (strcmp(commands[0], "unsetenv") == 0) {
+    } else if (_strcmp(commands[0], "unsetenv") == 0) {
         if (commands[1] != NULL) {
             if (unsetenv(commands[1]) != 0) {
                 fprintf(stderr, "unsetenv: Failed to unset environment variable\n");
@@ -341,13 +328,13 @@ if (file == NULL) {
                char **commands = filter(argv[0], line);
 
                if (commands[0] != NULL) {
-            if (strcmp(commands[0], "cd") == 0) {
+            if (_strcmp(commands[0], "cd") == 0) {
                 handle_cd(commands, home_dir, &previous_dir);
                 continue;
-            } else if (strcmp(commands[0], "echo") == 0) {
+            } else if (_strcmp(commands[0], "echo") == 0) {
                 handle_echo(commands, &status);
                 continue;
-            } else if (strcmp(commands[0], "setenv") == 0 || strcmp(commands[0], "unsetenv") == 0) {
+            } else if (_strcmp(commands[0], "setenv") == 0 || _strcmp(commands[0], "unsetenv") == 0) {
                 handle_environment(commands, &status);
                 continue;
             }
@@ -359,6 +346,7 @@ if (file == NULL) {
         x = _getline(&buffer, &size, stdin);  
 		line_number++;
         if (x == -1) { 
+            free(buffer);/*found it */
             return 0;
         }
  
@@ -371,7 +359,6 @@ if (file == NULL) {
         break;
     }
     if (buffer[i + 1] == '\0') {
-        
         exit(0);
     }
 }
@@ -379,7 +366,7 @@ if (file == NULL) {
         commands = filter(argv[0],buffer);
         for(int h = 0;commands[h];h++)
         {
-            if (strcmp(commands[h],"&&") == 0 || strcmp(commands[h] , "||") == 0)
+            if (_strcmp(commands[h],"&&") == 0 || _strcmp(commands[h] , "||") == 0)
             {
                 check_opperators(commands, argv[0], &status);
                 y = 1;
@@ -388,7 +375,7 @@ if (file == NULL) {
         }
         for(int h = 0;commands[h];h++)
         {
-            if (strcmp(commands[h],";") == 0)
+            if (_strcmp(commands[h],";") == 0)
             {
                 check_semicollen(commands, argv[0], &status);
                 y=1;
@@ -397,18 +384,20 @@ if (file == NULL) {
         if (y == 1)
             continue;
         
-       if (commands[0] != NULL && strcmp(commands[0], "#") == 0 && isatty(STDIN_FILENO) == 0) {
+       if (commands[0] != NULL && _strcmp(commands[0], "#") == 0 && isatty(STDIN_FILENO) == 0) {
+        free(commands);/*non tested*/
+        free(buffer);/*free done */
     exit(0);
 }
         remove_comments(commands);
         if (commands[0] != NULL) {
-            if (strcmp(commands[0], "cd") == 0) {
+            if (_strcmp(commands[0], "cd") == 0) {
                 handle_cd(commands, home_dir, &previous_dir);
                 continue;
-            } else if (strcmp(commands[0], "echo") == 0) {
+            } else if (_strcmp(commands[0], "echo") == 0) {
                 handle_echo(commands, &status);
                 continue;
-            } else if (strcmp(commands[0], "setenv") == 0 || strcmp(commands[0], "unsetenv") == 0) {
+            } else if (_strcmp(commands[0], "setenv") == 0 || _strcmp(commands[0], "unsetenv") == 0) {
                 handle_environment(commands, &status);
                 continue;
             }
