@@ -2,6 +2,7 @@
 #define MAIN_H
 
 #define BUFFER_SIZE 2048
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 /* libraries */
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,5 +25,6 @@ int _strcmp(char *s1, char *s2);
 int _free(char **p);
 void string_free(char **ptr);
 void *my_realloc(void *ptr, size_t new_size);
+char *_strdup(char *str);
 
 #endif
