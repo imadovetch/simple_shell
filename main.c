@@ -117,7 +117,7 @@ void execute_command(char *program_name, char *command, int *status) {
     if (pid == 0) {
         // Child process
         char *args[] = {command, NULL};
-        execvp(command, args);
+        c_execvp(command, args);
 
         // If execvp returns, the command was not found
         fprintf(stderr, "%s: %d: %s: not found\n", program_name, 1, command);
@@ -128,7 +128,39 @@ void execute_command(char *program_name, char *command, int *status) {
         perror("fork");
     }
 }
+int c_execvp(const char *file, char *const argv[]) {
+    // Locate the executable using PATH environment variable
+    char *path = getenv("PATH");
+    if (path == NULL) {
+        perror("Error getting PATH");
+        return -1;
+    }
 
+    char *path_copy = strdup(path);
+    if (path_copy == NULL) {
+        perror("Error duplicating PATH");
+        return -1;
+    }
+
+    int ret = -1;
+    char *dir = strtok(path_copy, ":");
+    while (dir != NULL) {
+        // Construct full path to executable
+        char full_path[1024];
+        snprintf(full_path, sizeof(full_path), "%s/%s", dir, file);
+
+        // Attempt to execute the program
+        ret = execve(full_path, argv, environ);
+        if (ret != -1) {
+            break;  // Execution succeeded
+        }
+
+        dir = strtok(NULL, ":");
+    }
+
+    free(path_copy);
+    return ret;
+}
 void execute_command_group(char **command_group, char *name, int *status) {
     pid_t pid = fork();
     if (pid == 0) {
@@ -276,6 +308,7 @@ void handle_environment(char **commands, int *status) {
     }
     *status = 0;
 }
+
 int main(int argc, char **argv) {
    int line_number = 0;
     char *prompt = "mine$ ";
@@ -283,13 +316,10 @@ int main(int argc, char **argv) {
     size_t size = 0;
     int x = 0;
     char **commands = NULL;
-    char *path = "/usr/bin"; // Use your default path here
+    char *path = "/usr/bin";
     char *home_dir = getenv("HOME");
     char *previous_dir = NULL;
     char *current_dir = NULL;
-   
-   // int status = 0;
-
     while (1) {
 		if(isatty(STDIN_FILENO) != 0)
 			printf("%s", prompt);
@@ -301,7 +331,6 @@ if (file == NULL) {
     fprintf(stderr, "%s: %d: Can't open %s\n", argv[0], line_number, argv[1]);
     return 127;
 }
-
         char *line = NULL;
         size_t len = 0;
                    while (_getline(&line, &len, file) != -1) {
@@ -323,34 +352,24 @@ if (file == NULL) {
                 continue;
             }
         }
-
            }
-
            free(line);
            fclose(file);
            return status;}
-
-        x = _getline(&buffer, &size, stdin);
-         
+        x = _getline(&buffer, &size, stdin);  
 		line_number++;
-        
-        if (x == -1) {
-           
+        if (x == -1) { 
             return 0;
         }
-
-        
+ 
         size_t len = my_strlen(buffer);
         if (len > 0 && buffer[len - 1] == '\n') {
             buffer[len - 1] = '\0';
         }
         for (int i = 0; buffer[i]; i++) {
     if (!isspace(buffer[i])) {
-       
         break;
     }
-    
-  
     if (buffer[i + 1] == '\0') {
         
         exit(0);
@@ -373,8 +392,7 @@ if (file == NULL) {
             {
                 check_semicollen(commands, argv[0], &status);
                 y=1;
-            }
-                    
+            }       
         }
         if (y == 1)
             continue;
@@ -382,81 +400,19 @@ if (file == NULL) {
        if (commands[0] != NULL && strcmp(commands[0], "#") == 0 && isatty(STDIN_FILENO) == 0) {
     exit(0);
 }
-
         remove_comments(commands);
-        
         if (commands[0] != NULL) {
-         if (strcmp(commands[0], "cd") == 0) {
-    if (commands[1] == NULL || strcmp(commands[1], "~") == 0) {
-        if (chdir(home_dir) == -1) {
-            perror("cd");
-        }
-    } else if (strcmp(commands[1], "-") == 0) {
-        if (previous_dir != NULL) {
-            if (chdir(previous_dir) == -1) {
-                perror("cd");
-            }
-        }
-    } else {
-        if (chdir(commands[1]) == -1) {
-            fprintf(stderr, "%s: %d: cd: can't cd to %s\n", argv[0], line_number, commands[1]);
-        }
-    }
-    current_dir = getcwd(NULL, 0);
-    if (current_dir != NULL) {
-        setenv("PWD", current_dir, 1);
-    }
-
-    if (previous_dir != NULL) {
-        free(previous_dir);
-    }
-    previous_dir = current_dir;
-
-    continue;
-}
-        else if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$?") == 0) {
-        printf("%d\n", status);
-        status = 0;
-        continue;
-        
-        }else if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$$") == 0) {
-    printf("%d\n", getpid());
-    status = 0;
-    continue;
-}           else if (strcmp(commands[0], "echo") == 0 && strcmp(commands[1], "$PATH") == 0) {
-    char *path_value = getenv("PATH");
-    if (path_value != NULL) {
-        printf("%s\n", path_value);
-    } else {
-        fprintf(stderr, "PATH environment variable not set\n");
-    }
-    status = 0;
-    continue;
-}
-            if (strcmp(commands[0], "setenv") == 0) {
-                if (commands[1] != NULL && commands[2] != NULL) {
-                    if (setenv(commands[1], commands[2], 1) != 0) {
-                        fprintf(stderr, "setenv: Failed to set environment variable\n");
-                    }
-                } else {
-                    fprintf(stderr, "setenv: Invalid syntax\n");
-                }
+            if (strcmp(commands[0], "cd") == 0) {
+                handle_cd(commands, home_dir, &previous_dir);
                 continue;
-            } else if (strcmp(commands[0], "unsetenv") == 0) {
-                if (commands[1] != NULL) {
-                    if (unsetenv(commands[1]) != 0) {
-                        fprintf(stderr, "unsetenv: Failed to unset environment variable\n");
-                    }
-                } else {
-                    fprintf(stderr, "unsetenv: Invalid syntax\n");
-                }
+            } else if (strcmp(commands[0], "echo") == 0) {
+                handle_echo(commands, &status);
+                continue;
+            } else if (strcmp(commands[0], "setenv") == 0 || strcmp(commands[0], "unsetenv") == 0) {
+                handle_environment(commands, &status);
                 continue;
             }
-}
-          
-
-       
-                  
+        }      
        pid_t pid = fork();
       
 if (pid == 0) {
@@ -487,9 +443,6 @@ if (pid == 0) {
     
     ; 
 }
-
-
-
 } else if (pid > 0) {
     wait(&status);
     if (WIFEXITED(status)) {
