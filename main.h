@@ -26,5 +26,15 @@ int _free(char **p);
 void string_free(char **ptr);
 void *my_realloc(void *ptr, size_t new_size);
 char *_strdup(char *str);
+void adjust_ls_command(char **command);
+char *construct_full_path(const char *program_name, int line_number, const char *dir, const char *command);
+int c_execvp(const char *file, char *const argv[]);
+void execute_command(char *program_name, char *command, int *status);
+void execute_command_group(char **command_group, char *name, int *status);
+void check_semicollen(char **pcommands, char *name, int *status);
+void handle_cd(char **commands, char *home_dir, char **previous_dir, char *name);
+void handle_echo(char **commands, int *status);
+void handle_environment(char **commands, int *status);
+
 
 #endif
