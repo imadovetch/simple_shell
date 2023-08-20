@@ -43,62 +43,65 @@ cont:
 	}
 	
 }
-
-char **filter(const char *program_name,char *str ) {// ls                   \n       -a   
-    char *com, **comands = NULL;
+char **filter(const char *program_name, char *str) {
+    char *com, **commands = NULL;
     int i = 0;
 
     com = _strtok(str, " \n\t");
     while (com) {
-        comands = realloc(comands, (i + 1) * sizeof(char *));
-        if (!comands) {
+        commands = realloc(commands, (i + 1) * sizeof(char *));
+        if (!commands) {
             perror("realloc failed");
             exit(98);
         }
-        comands[i] = com;
+        commands[i] = com;
         i++;
         com = _strtok(NULL, " \t\n");
     }
-    comands = realloc(comands, (i + 1) * sizeof(char *));
-    if (!comands) {
+    commands = realloc(commands, (i + 1) * sizeof(char *));
+    if (!commands) {
         perror("realloc failed");
         exit(98);
     }
-	comands[i] = NULL;
-	for(i = 0 ; comands[i]; i++)
-	{
-		
-		if (comands[i] && comands[i+1]) {
-    if (strcmp(comands[i], "exit") == 0) {
-        char *endptr;
-        int x = strtol(comands[i+1], &endptr, 10);
-        //dir strtol dyalek
-        if (*endptr != '\0') {
-            // Conversion failed, it's not a valid number
-            fprintf(stderr, "%s: 1: exit: Illegal number: %s\n", program_name, comands[i+1]);
-            exit(2);
-        } else if (x <= 0) {
-            // Number is out of valid exit status range
-            fprintf(stderr, "%s: 1: exit: Illegal number: %d\n", program_name, x);
-            exit(2);
-        }else if(x >= 255)
-        {
-            
-            exit(232);
-        }
-        
-        exit((int)x);
-    }}
-		
-		
-		else if (strcmp(comands[i],"exit") == 0)
-		{
-			exit(0);
-		}
-		
-	}
-    comands[i] = NULL;
-    
-    return (comands);//ls -a
+    commands[i] = NULL;
 
+    for (i = 0; commands[i]; i++) {
+        if (commands[i] && commands[i + 1]) {
+            if (strcmp(commands[i], "exit") == 0) {
+                char *endptr;
+                int x = strtol(commands[i + 1], &endptr, 10);
+                if (*endptr != '\0') {
+                    fprintf(stderr, "%s: 1: exit: Illegal number: %s\n", program_name, commands[i + 1]);
+                    _free(commands);free(commands);
+                    exit(2);
+                } else if (x <= 0) {
+                    fprintf(stderr, "%s: 1: exit: Illegal number: %d\n", program_name, x);
+                    _free(commands);free(commands);
+                    exit(2);
+                } else if (x >= 255) {
+                    _free(commands);free(commands);
+                    exit(232);
+                }
+
+                _free(commands);free(commands);
+                exit((int)x);
+            }
+        } else if (strcmp(commands[i], "exit") == 0) {
+            _free(commands);free(commands);
+            exit(0);
+        }
+    }
+
+    commands[i] = NULL;
+    return commands;
+}
+int _free(char **p)
+{
+	if (p && *p)
+	{
+		free(*p);
+		*p = NULL;
+		return (1);
+	}
+	return (0);
 }

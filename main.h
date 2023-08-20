@@ -21,7 +21,7 @@ size_t my_strlen(const char *str);
 void my_strcpy(char *dest, const char *src);
 int _strcmp(char *s1, char *s2);
 /* allocate and free memory functions protos*/
-int _free(void **p);
+int _free(char **p);
 void string_free(char **ptr);
 void *my_realloc(void *ptr, size_t new_size);
 

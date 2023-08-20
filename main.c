@@ -456,6 +456,8 @@ if (pid == 0) {
 }
 if(isatty(STDIN_FILENO) == 0)
         { atexit(cleanupFunction);}
+        
+    free(commands);
     }
 
     for (int i = 0; commands[i] != NULL; i++) {
