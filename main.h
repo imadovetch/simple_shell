@@ -33,10 +33,13 @@ int c_execvp(const char *file, char *const argv[]);
 void execute_command(char *program_name, char *command, int *status);
 void execute_command_group(char **command_group, char *name, int *status);
 void check_semicollen(char **pcommands, char *name, int *status);
+void check_opperators(char **pcommands, char *name, int *status);
 void handle_cd(char **commands, char *home_dir,
 char **previous_dir, char *name);
 void handle_echo(char **commands, int *status);
 void handle_environment(char **commands, int *status);
-
+void remove_comments(char **commands);
+ssize_t _getline(char **lineptr, size_t *n, FILE *stream);
+int isspace( int ch);
 
 #endif

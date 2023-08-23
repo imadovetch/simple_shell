@@ -27,18 +27,19 @@ int handlers(char **commands, char *home_dir, char **previous_dir, char *program
 }
 int main(int argc, char **argv)
 {
-	int line_number = 0;
+	int y,line_number = 0;
 	extern char **environ;
 	char *prompt = "mine$ ";
 	char *buffer = NULL;
-	size_t size = 0;
+	size_t len,size = 0;
 	int x = 0;
 	char **commands = NULL;
 	char *path = "/usr/bin";
 	char *home_dir = getenv("HOME");
 	char *previous_dir = NULL;
-	char *current_dir = NULL;
-
+	int h,i;
+	pid_t pid;
+	char *line;
 	while (1)
 	{
 		if (isatty(STDIN_FILENO) != 0)
@@ -51,14 +52,15 @@ int main(int argc, char **argv)
 				fprintf(stderr, "%s: %d: Can't open %s\n", argv[0], line_number, argv[1]);
 				return (127);
 			}
-			char *line = NULL;
-			size_t len = 0;
+			
+			line = NULL;
+			len = 0;
 			while (_getline(&line, &len, file) != -1)
 			{
 				size_t line_len = my_strlen(line);
 				if (line_len > 0 && line[line_len - 1] == '\n')
 					line[line_len - 1] = '\0';
-				char **commands = filter(argv[0], line);
+				commands = filter(argv[0], line);
 				if (commands[0] != NULL)
 				{
                     if (handlers(commands, home_dir, &previous_dir, argv[0]))
@@ -77,12 +79,12 @@ int main(int argc, char **argv)
 			free(buffer);
 			return (0);
 		}
-		size_t len = my_strlen(buffer);
+		len = my_strlen(buffer);
 		if (len > 0 && buffer[len - 1] == '\n')
 		{
 			buffer[len - 1] = '\0';
 		}
-		for (int i = 0; buffer[i]; i++)
+		for (i = 0; buffer[i]; i++)
 		{
 			if (!isspace(buffer[i]))
 				break;
@@ -90,10 +92,10 @@ int main(int argc, char **argv)
 				exit(0);
 		}
 
-		int y = 0;
+		y = 0;
 		commands = filter(argv[0], buffer);
 
-		for (int h = 0; commands[h]; h++)
+		for (h = 0; commands[h]; h++)
 		{
 			if (_strcmp(commands[h], "&&") == 0 || _strcmp(commands[h], "||") == 0)
 			{
@@ -102,7 +104,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		for (int h = 0; commands[h]; h++)
+		for (h = 0; commands[h]; h++)
 		{
 			if (_strcmp(commands[h], ";") == 0)
 			{
@@ -124,7 +126,8 @@ int main(int argc, char **argv)
             if (handlers(commands, home_dir, &previous_dir, argv[0]))
                 continue;
 		}
-		pid_t pid = fork();
+		
+		pid = fork();
 		if (pid == 0)
 		{
 			char *command = commands[0];
@@ -171,8 +174,7 @@ int main(int argc, char **argv)
 			atexit(cleanupFunction);
 		free(commands);
 	}
-	for (int i = 0; commands[i] != NULL; i++)
-		free(commands[i]);
+	_free(commands);
 	free(commands);
 	free(buffer);
 	exit(status);
