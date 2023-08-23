@@ -86,7 +86,7 @@ void handle_echo(char **commands, int *status)
 		{
 			fprintf(stderr, "PATH environment variable not set\n");
 		}
-	}else
+	} else
 		printf("%s\n", commands[1]);
 	*status = 0;
 }
