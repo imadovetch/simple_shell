@@ -40,5 +40,4 @@ void handle_echo(char **commands, int *status);
 void handle_environment(char **commands, int *status);
 void remove_comments(char **commands);
 int isspace( int ch);
-
 #endif
