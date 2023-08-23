@@ -39,7 +39,6 @@ char **previous_dir, char *name);
 void handle_echo(char **commands, int *status);
 void handle_environment(char **commands, int *status);
 void remove_comments(char **commands);
-ssize_t _getline(char **lineptr, size_t *n, FILE *stream);
 int isspace( int ch);
 
 #endif

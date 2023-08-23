@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 			
 			line = NULL;
 			len = 0;
-			while (_getline(&line, &len, file) != -1)
+			while (getline(&line, &len, file) != -1)
 			{
 				size_t line_len = my_strlen(line);
 				if (line_len > 0 && line[line_len - 1] == '\n')
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 			return (status);
 		}
 
-		x = _getline(&buffer, &size, stdin);
+		x = getline(&buffer, &size, stdin);
 		line_number++;
 		if (x == -1)
 		{

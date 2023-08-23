@@ -68,54 +68,6 @@ int line_number, const char *dir, const char *command)
 	}
 	return (full_path);
 }
-/**
- * _getline - Read a line from a file stream
- * @lineptr: Pointer to a buffer to store the line
- * @n: Pointer to the size of the buffer
- * @stream: File stream to read from
- *
- * Return: Number of characters read, -1 on error or end of file
- */
-ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
-{
-	size_t pos = 0;
-	int c;
-
-	if (*lineptr == NULL || *n == 0)
-	{
-		*n = 128;  /* Initial buffer size */
-		*lineptr = (char *)malloc(*n);
-		if (*lineptr == NULL)
-		{
-			return (-1);  /* Error allocating memory */
-		}
-	}
-
-
-
-	while ((c = fgetc(stream)) != EOF)
-	{
-		(*lineptr)[pos++] = (char)c;
-
-		if (pos >= *n - 1)
-		{
-			/* Double the buffer size */
-			char *new_ptr = (char *)realloc(*lineptr, (*n) * 2);
-
-			if (new_ptr == NULL)
-			{
-				return (-1);  /* Error reallocating memory */
-			}
-			*lineptr = new_ptr;
-		}
-		if (c == '\n')
-			break;  /* Reached end of line */
-	}
-	(*lineptr)[pos] = '\0';  /* Null-terminate the string */
-	if (pos == 0 && c == EOF)
-		return (-1);  /* No characters read, reached end of file */
-	return (pos);  /* Return the number of characters read */
-}
 
 /**
  * remove_comments - Remove comments from an array of commands
