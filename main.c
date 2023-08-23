@@ -11,17 +11,20 @@ int handlers(char **commands, char *home_dir, char **previous_dir, char *program
     if (_strcmp(commands[0], "cd") == 0)
     {
         handle_cd(commands, home_dir, previous_dir, program_name);
-        return 1;
+        if (isatty(STDIN_FILENO) != 0)
+			return 1;
     }
     else if (_strcmp(commands[0], "echo") == 0)
     {
         handle_echo(commands, &status);
-        return 1;
+        if (isatty(STDIN_FILENO) != 0)
+			return 1;
     }
     else if (_strcmp(commands[0], "setenv") == 0 || _strcmp(commands[0], "unsetenv") == 0)
     {
         handle_environment(commands, &status);
-        return 1;
+        if (isatty(STDIN_FILENO) != 0)
+			return 1;
     }
     return 0;
 }
