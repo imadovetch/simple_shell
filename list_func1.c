@@ -78,6 +78,9 @@ int line_number, const char *dir, const char *command)
  */
 ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
 {
+	size_t pos = 0;
+	int c;
+
 	if (*lineptr == NULL || *n == 0)
 	{
 		*n = 128;  /* Initial buffer size */
@@ -88,8 +91,7 @@ ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
 		}
 	}
 
-	size_t pos = 0;
-	int c;
+
 
 	while ((c = fgetc(stream)) != EOF)
 	{
@@ -97,8 +99,8 @@ ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
 
 		if (pos >= *n - 1)
 		{
-			*n *= 2;  /* Double the buffer size */
-			char *new_ptr = (char *)realloc(*lineptr, *n);
+			/* Double the buffer size */
+			char *new_ptr = (char *)realloc(*lineptr, (*n) * 2);
 
 			if (new_ptr == NULL)
 			{
@@ -126,7 +128,9 @@ ssize_t _getline(char **lineptr, size_t *n, FILE *stream)
  */
 void remove_comments(char **commands)
 {
-	for (int i = 0; commands[i] != NULL; i++)
+	int i;
+
+	for (i = 0; commands[i] != NULL; i++)
 	{
 		char *hash_pos = strchr(commands[i], '#');
 
@@ -158,8 +162,10 @@ void execute_command(char *program_name, char *command, int *status)
 	if (pid == 0)
 	{
 		/* Child process */
-		char *args[] = {command, NULL};
+		char **args = malloc(sizeof(char *) * 2);
 
+		args[0] = command;
+		args[1] = NULL;
 		c_execvp(command, args);
 
 		/* If execvp returns, the command was not found */

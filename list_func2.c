@@ -14,7 +14,10 @@ extern char **environ;
  */
 int c_execvp(const char *file, char *const argv[])
 {
-	/* Locate the executable using PATH environment variable */
+	int ret;
+	char *path_copy;
+	char *dir;
+
 	char *path = getenv("PATH");
 
 	if (path == NULL)
@@ -23,25 +26,21 @@ int c_execvp(const char *file, char *const argv[])
 		return (-1);
 	}
 
-	char *path_copy = _strdup(path);
+	path_copy = _strdup(path);
 
 	if (path_copy == NULL)
 	{
 		perror("Error duplicating PATH");
 		return (-1);
 	}
-
-	int ret = -1;
-
-	char *dir = strtok(path_copy, ":");
-
+	ret = -1;
+	dir = strtok(path_copy, ":");
 	while (dir != NULL)
 	{
 		/* Construct full path to executable */
 		char full_path[1024];
 
 		snprintf(full_path, sizeof(full_path), "%s/%s", dir, file);
-
 		/* Attempt to execute the program */
 		ret = execve(full_path, argv, environ);
 		if (ret != -1)
@@ -51,7 +50,6 @@ int c_execvp(const char *file, char *const argv[])
 
 		dir = strtok(NULL, ":");
 	}
-
 	free(path_copy);
 	return (ret);
 }
@@ -69,12 +67,14 @@ int c_execvp(const char *file, char *const argv[])
  */
 void execute_command_group(char **command_group, char *name, int *status)
 {
+	int i;
+
 	pid_t pid = fork();
 
 	if (pid == 0)
 	{
 		/* Child process */
-		for (int i = 0; command_group[i] != NULL; i++)
+		for (i = 0; command_group[i] != NULL; i++)
 		{
 			execute_command(name, command_group[i], status);
 		}
@@ -111,6 +111,7 @@ void execute_command_group(char **command_group, char *name, int *status)
 void check_semicollen(char **pcommands, char *name, int *status)
 {
 	int i = 0;
+	int k;
 
 	while (pcommands[i])
 	{
@@ -135,7 +136,7 @@ void check_semicollen(char **pcommands, char *name, int *status)
 		}
 
 		/* Free memory for the command group */
-		for (int k = 0; k < j; k++)
+		for (k = 0; k < j; k++)
 		{
 			free(command_group[k]);
 		}

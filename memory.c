@@ -45,6 +45,11 @@ void string_free(char **ptr)
  */
 void *my_realloc(void *ptr, size_t new_size)
 {
+	/*Extract the old size from the metadata stored before the pointer.*/
+	size_t old_size = *((size_t *)ptr - 1);
+	/*Allocate a new memory block and copy old data to it.*/
+	void *new_ptr = malloc(new_size);
+
 	if (new_size == 0)
 	{
 		free(ptr);
@@ -56,16 +61,12 @@ void *my_realloc(void *ptr, size_t new_size)
 		return (malloc(new_size));
 	}
 
-	/*Extract the old size from the metadata stored before the pointer.*/
-	size_t old_size = *((size_t *)ptr - 1);
+
 
 	if (old_size >= new_size)
 	{
 		return (ptr);/*No need to reallocate if old size is sufficient.*/
 	}
-
-	/*Allocate a new memory block and copy old data to it.*/
-	void *new_ptr = malloc(new_size);
 
 	if (new_ptr)
 {

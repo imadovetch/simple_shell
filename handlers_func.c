@@ -14,6 +14,8 @@
 void handle_cd(char **commands, char *home_dir,
 char **previous_dir, char *name)
 {
+	char *current_dir = getcwd(NULL, 0);
+
 	if (commands[1] == NULL || _strcmp(commands[1], "~") == 0)
 	{
 		if (chdir(home_dir) == -1)
@@ -40,7 +42,6 @@ char **previous_dir, char *name)
 		}
 	}
 
-	char *current_dir = getcwd(NULL, 0);
 
 	if (current_dir != NULL)
 	{
